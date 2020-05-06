@@ -1,0 +1,2 @@
+rootProject.name='Pokimon10'
+include ':app'
