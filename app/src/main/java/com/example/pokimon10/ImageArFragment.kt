@@ -16,22 +16,28 @@ import com.google.ar.sceneform.ux.ArFragment
 import java.io.IOException
 
 private const val REQUEST_CODE_CHOOSE_IMAGE = 0
+private const val USE_DATABASE = false   // true ==> we want to use database
 
 class ImageArFragment():ArFragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        chooseNewImage()
+        if (!USE_DATABASE){
+            chooseNewImage()  // if we dont chose database we have to choose new image
+        }
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         planeDiscoveryController.hide()
-        planeDiscoveryController.setInstructionView(null) //white hand
-        arSceneView.planeRenderer.isEnabled=false //white dots
+        planeDiscoveryController.setInstructionView(null) //remove white hand
+        arSceneView.planeRenderer.isEnabled=false //remove white dots
     }
 
     override fun getSessionConfiguration(session: Session?): Config {
         val config= super.getSessionConfiguration(session)
         config.focusMode=Config.FocusMode.AUTO
+        if (USE_DATABASE){
+            config.augmentedImageDatabase=createAugmentedImageDatabase(session ?: return config)
+        }
         return config                              // Its just focus camera to identify image
     }
 
@@ -53,6 +59,16 @@ class ImageArFragment():ArFragment() {
             config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE  // to get the update fram
             session.configure(config)        // here its the end of manipulate and create ArFragment with data basethat include one image from the gallery
         }                                   // in the end we create database with image in this session
+    }
+
+    private fun createAugmentedImageDatabase(session: Session): AugmentedImageDatabase? {
+        return try {    // this fun read the restore database with the original image
+            val inputStream = resources.openRawResource(R.raw.my_image_database)
+            AugmentedImageDatabase.deserialize(session, inputStream)
+        } catch(e: IOException) {
+            Log.e("ImageArFragment", "IOException while loading augmented image from storage", e)
+            null
+        }
     }
 
     private fun createAugmentedImageDatabaseWithSingleImage(session: Session, imageUri: Uri): AugmentedImageDatabase {
