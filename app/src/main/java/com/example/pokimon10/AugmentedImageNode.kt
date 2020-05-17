@@ -16,6 +16,7 @@ class AugmentedImageNode(val context: Context) :
     var image: AugmentedImage? = null
     private var modelCompleatableFuture = ModelRenderable.builder()
         .setSource(context, R.raw.beedrill)
+       // .setSource(context, R.raw.fly)
         .build()
 
     private lateinit var renderable: ModelRenderable
